@@ -6,7 +6,9 @@ services:
     container_name: primary
     image: powerdns/pdns-auth-47
     volumes:
-      - ./config/pdns-private.conf:/etc/powerdns/pdns.conf
+      - ./config/primary/pdns.conf:/etc/powerdns/pdns.conf
+      # Add the setup.sh script to make it easier to do initial work
+      - ./config/primary/setup.sh:/home/pdns/setup.sh
     networks:
       private_net:
         ipv4_address: 10.5.0.20
@@ -17,7 +19,7 @@ services:
     container_name: secondary
     image: powerdns/pdns-auth-47
     volumes:
-      - ./config/pdns-public.conf:/etc/powerdns/pdns.conf
+      - ./config/secondary/pdns.conf:/etc/powerdns/pdns.conf
     networks:
       private_net:
         ipv4_address: 10.5.0.80
