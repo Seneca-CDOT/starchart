@@ -1,10 +1,31 @@
 services:
 
-  # Internal Authoritative Server (primary)
-  pdns-private:
+  # Starchart service
+  starchart:
+    container_name: starchart
+    init: true
+    build: ./starchart
+    ports:
+      - "3000:3000"
+    environment:
+      - ACME_DIRECTORY_URL=https://pebble:14000/dir
+      - POWERDNS_API_KEY=secret-api-key
+      - POWERDNS_API_URL=http://primary:8081/api/v1
+      - PEBBLE_MOCK_DNS_URL=http://challtestsrv:8055
+    networks:
+      private_net:
+        ipv4_address: 10.5.0.88    
+
+  # Authoritative DNS Server (primary)
+  primary-dns:
     hostname: primary
     container_name: primary
     image: powerdns/pdns-auth-47
+    expose:
+      - "53"
+      - "53/udp"
+    ports:
+      - "8081:8081"
     volumes:
       - ./config/primary/pdns.conf:/etc/powerdns/pdns.conf
       # Add the setup.sh script to make it easier to do initial work
@@ -13,26 +34,65 @@ services:
       private_net:
         ipv4_address: 10.5.0.20
 
-  # Public Facing Server (secondary)
-  pdns-public:
-    hostname: secondary
-    container_name: secondary
-    image: powerdns/pdns-auth-47
-    volumes:
-      - ./config/secondary/pdns.conf:/etc/powerdns/pdns.conf
+  # Secondary DNS Server (replication not working yet...)
+  # secondary-dns:
+  #   hostname: secondary
+  #   container_name: secondary
+  #   image: powerdns/pdns-auth-47
+  #   volumes:
+  #     - ./config/secondary/pdns.conf:/etc/powerdns/pdns.conf
+  #   networks:
+  #     private_net:
+  #       ipv4_address: 10.5.0.80
+  #   # Expose this one to the host
+  #   ports:
+  #     - "1053:53"
+  #     - "1053:53/udp"
+  #     - "8082:8081"
+
+  # Let's Encrypt test server - https://github.com/letsencrypt/pebble
+  pebble:
+    image: letsencrypt/pebble:latest
+    container_name: pebble
+    # Use the challenge test server for our DNS challenges (we'll mock the TXT records) 
+    command: pebble -config /test/config/pebble-config.json -strict -dnsserver 10.5.0.76:8053
+    expose:
+      - "14000"
+      - "80"
+    ports:
+      - "14000:14000"  # HTTPS ACME API
+      - "15000:15000"  # HTTPS Management API
+    depends_on:
+      - challtestsrv
+      - primary-dns
     networks:
       private_net:
-        ipv4_address: 10.5.0.80
-    # Expose this one to the host
-    ports:
-      - "1053:53"
-      - "1053:53/udp"
-      - "8081:8081"
+        ipv4_address: 10.5.0.75
 
-  # Simple nginx web server
+  # Pebble Challenge Test Server - https://github.com/letsencrypt/pebble/blob/main/cmd/pebble-challtestsrv/README.md
+  challtestsrv:
+    image: letsencrypt/pebble-challtestsrv:latest
+    container_name: pebble-challenge
+    command: pebble-challtestsrv -defaultIPv6 "" -defaultIPv4 10.5.0.76
+    expose:
+      - "8055"
+    ports:
+      - 8055:8055  # HTTP Management API
+    networks:
+      private_net:
+        ipv4_address: 10.5.0.76
+
+  # www.starchart.com only available internally
   web-server:
     container_name: web
     image: nginx:stable-alpine
+    ports:
+      - "9080:80"
+    volumes:
+      - ./config/web:/usr/share/nginx/html
+    dns:
+      # Use the primary dns
+      - 10.5.0.20
     networks:
       private_net:
         ipv4_address: 10.5.0.100
