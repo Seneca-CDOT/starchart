@@ -59,7 +59,7 @@ function challengeRemoveFn(authz, challenge, keyAuthorization) {
 
 module.exports = async () => {
     // Domain
-    const domain = '*.starchart.com';
+    const domain = '*.starchart.invalid';
 
     // Assumes pebble is running in docker already
     const pebbleDirUrl = 'https://127.0.0.1:14000/dir';
@@ -84,7 +84,7 @@ module.exports = async () => {
     /* Certificate */
     const cert = await client.auto({
         csr,
-        email: 'mail@starchart.com',
+        email: 'mail@starchart.invalid',
         termsOfServiceAgreed: true,
         challengePriority: ['dns-01'],
         // Just for testing locally...

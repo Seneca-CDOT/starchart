@@ -15,7 +15,7 @@ const POWERDNS_API_URL = process.env.POWERDNS_API_URL || 'http://localhost:8081/
 const PEBBLE_MOCK_DNS_URL = process.env.PEBBLE_MOCK_DNS_URL || 'http://localhost:8055';
 
 // Our domain (we don't own this, just for testing) 
-const STARCHART_ZONE = 'starchart.com';
+const STARCHART_ZONE = 'starchart.invalid';
 
 // Make sure a string ends with a `.`, adding if missing
 const endsWithPeriod = s => s.replace(/\.?$/, '.');
@@ -65,7 +65,7 @@ async function patchRecord(changeType, dnsRecord, recordValue) {
     }    
 }
 
-// Create a TXT record "_acme-challenge.starchart.com" with value "_v3lO9-X8YIz66WVylZaxWYZI8bYetULl0vz8GeTZeY"
+// Create a TXT record "_acme-challenge.starchart.invalid" with value "_v3lO9-X8YIz66WVylZaxWYZI8bYetULl0vz8GeTZeY"
 module.exports.createRecord = (dnsRecord, type = 'TXT', recordValue) => {
     return Promise.all([
         // Update PowerDNS

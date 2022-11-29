@@ -18,13 +18,12 @@ services:
 
   # Authoritative DNS Server (primary)
   primary-dns:
-    hostname: primary
+    hostname: ns1.starchart.invalid
     container_name: primary
     image: powerdns/pdns-auth-47
-    expose:
+    ports:
       - "53"
       - "53/udp"
-    ports:
       - "8081:8081"
     volumes:
       - ./config/primary/pdns.conf:/etc/powerdns/pdns.conf
@@ -35,20 +34,19 @@ services:
         ipv4_address: 10.5.0.20
 
   # Secondary DNS Server (replication not working yet...)
-  # secondary-dns:
-  #   hostname: secondary
-  #   container_name: secondary
-  #   image: powerdns/pdns-auth-47
-  #   volumes:
-  #     - ./config/secondary/pdns.conf:/etc/powerdns/pdns.conf
-  #   networks:
-  #     private_net:
-  #       ipv4_address: 10.5.0.80
-  #   # Expose this one to the host
-  #   ports:
-  #     - "1053:53"
-  #     - "1053:53/udp"
-  #     - "8082:8081"
+  secondary-dns:
+    hostname: ns2.starchart.invalid
+    container_name: secondary
+    image: powerdns/pdns-auth-47
+    volumes:
+      - ./config/secondary/pdns.conf:/etc/powerdns/pdns.conf
+    ports:
+      - "53"
+      - "53/udp"
+      - "8082:8081"
+    networks:
+      private_net:
+        ipv4_address: 10.5.0.80
 
   # Let's Encrypt test server - https://github.com/letsencrypt/pebble
   pebble:
@@ -82,7 +80,7 @@ services:
       private_net:
         ipv4_address: 10.5.0.76
 
-  # www.starchart.com only available internally
+  # www.starchart.invalid only available internally
   web-server:
     container_name: web
     image: nginx:stable-alpine
@@ -91,8 +89,9 @@ services:
     volumes:
       - ./config/web:/usr/share/nginx/html
     dns:
-      # Use the primary dns
       - 10.5.0.20
+      - 10.5.0.80
+      - 8.8.8.8
     networks:
       private_net:
         ipv4_address: 10.5.0.100
