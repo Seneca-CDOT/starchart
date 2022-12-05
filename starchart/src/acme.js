@@ -5,6 +5,7 @@
 
 // const fs = require('fs').promises;
 const acme = require("acme-client");
+const { X509Certificate } = require('crypto');
 
 const dns = require("./dns");
 
@@ -94,6 +95,10 @@ module.exports = async () => {
   log(`CSR:\n${csr.toString()}\n`);
   log(`Private key:\n${key.toString()}\n`);
   log(`Certificate:\n${cert.toString()}\n`);
+
+  // Parse it with https://nodejs.org/api/crypto.html#class-x509certificate
+  const x509 = new X509Certificate(cert.toString());
+  console.log({x509, subject: x509.subject, validFrom: x509.validFrom, validTo: x509.validTo })
 
   return {
     domain,
