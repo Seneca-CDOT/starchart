@@ -1,0 +1,14 @@
+{
+  "name": "@senecacdot/starchart",
+  "version": "0.0.1",
+  "description": "A self-serve tool for managing custom domains and certificates",
+  "scripts": {
+    "start": "cross-env NODE_EXTRA_CA_CERTS=./test/pebble/certs/ca.cert.pem node src"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "acme-client": "^5.0.0",
+    "cross-env": "^7.0.3",
+    "express": "^4.18.2"
+  }
+}
